@@ -3,6 +3,7 @@ package com.example.testcase.feature_user.presentation.users.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,7 +73,7 @@ fun ViewPager(
         ) {
             repeat(count) { iteration ->
                 val color =
-                    if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
+                    if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.background
                 Box(
                     modifier = Modifier
                         .padding(2.dp)
@@ -83,7 +84,6 @@ fun ViewPager(
                 )
             }
         }
-    } else {
-        CircularIndeterminateProgressBar()
     }
+    CircularIndeterminateProgressBar(isLoading)
 }

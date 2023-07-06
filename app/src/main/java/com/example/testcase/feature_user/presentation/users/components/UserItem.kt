@@ -19,8 +19,7 @@ import com.example.testcase.feature_user.domain.model.User
 @Composable
 fun UserItem(
     user: User,
-    modifier: Modifier = Modifier,
-    navController: NavController,
+    navController: NavController
 ) {
     Surface(
         onClick = {
@@ -31,6 +30,7 @@ fun UserItem(
             .height(150.dp)
             .width(100.dp)
             .padding(10.dp),
+        color = MaterialTheme.colorScheme.inverseOnSurface
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -47,7 +47,11 @@ fun UserItem(
                 text = user.login,
                 fontSize = 12.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Clip
+                overflow = TextOverflow.Clip,
+                modifier = Modifier
+                    .padding(
+                        horizontal = 10.dp, vertical = 8.dp
+                    )
             )
             Text(
                 text = user.type,

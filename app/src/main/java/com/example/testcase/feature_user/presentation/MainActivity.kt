@@ -12,15 +12,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.testcase.feature_user.presentation.tap_user.ViewModelFactory
 import com.example.testcase.feature_user.presentation.tap_user.components.VerticalLazyRepos
 import com.example.testcase.feature_user.presentation.users.components.ViewPager
 import com.example.testcase.feature_user.presentation.ui.theme.TestCaseTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @OptIn(ExperimentalPagerApi::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -33,7 +39,7 @@ class MainActivity : ComponentActivity() {
                     composable("home") {
                         Surface(
                             modifier = Modifier.fillMaxSize(),
-                            color = MaterialTheme.colorScheme.background
+                            color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             ViewPager(navController)
                         }
@@ -42,9 +48,11 @@ class MainActivity : ComponentActivity() {
                         "profile/{userLogin}",
                         arguments = listOf(navArgument("userLogin") { type = NavType.StringType })
                     ) { backStackEntry ->
+                        val reposViewModel = backStackEntry.arguments?.getString("userLogin")
+                            ?.let { viewModelFactory.create(it) }
                         VerticalLazyRepos(
                             navController,
-                            backStackEntry.arguments?.getString("userLogin")
+                            reposViewModel!!
                         )
                     }
                 }

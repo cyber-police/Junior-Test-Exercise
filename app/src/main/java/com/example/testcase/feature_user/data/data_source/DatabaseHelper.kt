@@ -29,10 +29,15 @@ class DatabaseHelper(context: Context) :
         const val COLUMN_RECEIVED_EVENTS_URL = "received_events_url"
         const val COLUMN_TYPE = "type"
         const val COLUMN_SITE_ADMIN = "site_admin"
+
+        const val TABLE_REPOSITORIES = "repositories"
+        const val COLUMN_FULL_NAME = "full_name"
+        const val COLUMN_LANGUAGE = "language"
+        const val COLUMN_VISIBILITY = "visibility"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
-        val createTableQuery = """
+        val createUsersTableQuery = """
             CREATE TABLE $TABLE_USERS (
                 $COLUMN_ID INTEGER PRIMARY KEY,
                 $COLUMN_LOGIN TEXT,
@@ -54,12 +59,26 @@ class DatabaseHelper(context: Context) :
                 $COLUMN_SITE_ADMIN BOOLEAN
             )
         """.trimIndent()
-        db?.execSQL(createTableQuery)
+        db?.execSQL(createUsersTableQuery)
+
+        val createRepositoriesTableQuery = """
+            CREATE TABLE $TABLE_REPOSITORIES (
+                $COLUMN_ID INTEGER PRIMARY KEY,
+                $COLUMN_FULL_NAME TEXT,
+                $COLUMN_LANGUAGE TEXT,
+                $COLUMN_VISIBILITY TEXT,
+                $COLUMN_LOGIN TEXT,
+                FOREIGN KEY ($COLUMN_LOGIN) REFERENCES $TABLE_USERS($COLUMN_LOGIN)
+            )
+        """.trimIndent()
+        db?.execSQL(createRepositoriesTableQuery)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        val dropTableQuery = "DROP TABLE IF EXISTS $TABLE_USERS"
-        db?.execSQL(dropTableQuery)
+        val dropUsersTableQuery = "DROP TABLE IF EXISTS $TABLE_USERS"
+        db?.execSQL(dropUsersTableQuery)
+        val dropRepositoriesTableQuery = "DROP TABLE IF EXISTS $TABLE_REPOSITORIES"
+        db?.execSQL(dropRepositoriesTableQuery)
         onCreate(db)
     }
 }

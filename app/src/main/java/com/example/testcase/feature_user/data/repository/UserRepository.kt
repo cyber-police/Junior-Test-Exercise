@@ -2,8 +2,6 @@ package com.example.testcase.feature_user.data.repository
 
 import android.content.ContentValues
 import android.content.Context
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import com.example.testcase.feature_user.domain.repository.UserService
 import com.example.testcase.feature_user.data.data_source.DatabaseHelper
 import com.example.testcase.feature_user.domain.model.Repository
@@ -51,16 +49,16 @@ class UserRepository(context: Context) {
                 response: Response<List<Repository>>
             ) {
                 if (response.isSuccessful) {
-                    val userList = response.body()
-                    callback(userList)
-                    //cacheUsers(userList)
+                    val repositoriesList = response.body()
+                    callback(repositoriesList)
+                    cacheRepositories(repositoriesList, login)
                 } else {
-                    //callback(getUsersFromCache())
+                    callback(getRepositoriesFromCache(login))
                 }
             }
 
             override fun onFailure(call: Call<List<Repository>>, t: Throwable) {
-                //callback(getUsersFromCache())
+                callback(getRepositoriesFromCache(login))
             }
         })
     }
@@ -110,10 +108,42 @@ class UserRepository(context: Context) {
         }
     }
 
+    private fun cacheRepositories(repositoriesList: List<Repository>?, login: String) {
+        repositoriesList?.let {
+            val db = databaseHelper.writableDatabase
+            for (repository in repositoriesList) {
+                val query = """
+                SELECT ${DatabaseHelper.COLUMN_ID} 
+                FROM ${DatabaseHelper.TABLE_REPOSITORIES} 
+                WHERE ${DatabaseHelper.COLUMN_ID} = ?
+                """.trimIndent()
+                val cursor = db.rawQuery(query, arrayOf("${repository.id}"))
+                val values = ContentValues().apply {
+                    put(DatabaseHelper.COLUMN_ID, repository.id)
+                    put(DatabaseHelper.COLUMN_FULL_NAME, repository.full_name)
+                    put(DatabaseHelper.COLUMN_LANGUAGE, repository.language)
+                    put(DatabaseHelper.COLUMN_VISIBILITY, repository.visibility)
+                    put(DatabaseHelper.COLUMN_LOGIN, login)
+                }
+                if (cursor.count == 0) {
+                    db.insert(DatabaseHelper.TABLE_REPOSITORIES, null, values)
+                } else {
+                    db.update(
+                        DatabaseHelper.TABLE_REPOSITORIES,
+                        values,
+                        "${DatabaseHelper.COLUMN_ID} = ?",
+                        arrayOf(repository.id.toString())
+                    )
+                }
+            }
+            db.close()
+        }
+    }
+
     fun getUsersFromCache(): List<User> {
         val db = databaseHelper.readableDatabase
         val cursor = db.rawQuery(
-            "SELECT * FROM users", null
+            "SELECT * FROM ${DatabaseHelper.TABLE_USERS}", null
         )
 
         val userList = mutableListOf<User>()
@@ -183,5 +213,45 @@ class UserRepository(context: Context) {
         db.close()
 
         return userList
+    }
+
+    fun getRepositoriesFromCache(login: String): List<Repository> {
+        val db = databaseHelper.readableDatabase
+
+        val query = """
+                SELECT * 
+                FROM ${DatabaseHelper.TABLE_REPOSITORIES} 
+                WHERE ${DatabaseHelper.COLUMN_LOGIN} = ?
+                """.trimIndent()
+        val cursor = db.rawQuery(query, arrayOf(login))
+
+        val repositoriesList = mutableListOf<Repository>()
+
+        while (cursor.moveToNext()) {
+            val id =
+                cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID))
+            val fullName =
+                cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_FULL_NAME))
+            val language =
+                if (cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LANGUAGE)) != null) {
+                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LANGUAGE))
+                } else {
+                    ""
+                }
+            val visibility =
+                cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_VISIBILITY))
+            val repository = Repository(
+                id,
+                fullName,
+                language,
+                visibility
+            )
+            repositoriesList.add(repository)
+        }
+
+        cursor.close()
+        db.close()
+
+        return repositoriesList
     }
 }

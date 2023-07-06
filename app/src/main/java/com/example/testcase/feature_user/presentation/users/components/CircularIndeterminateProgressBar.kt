@@ -1,5 +1,6 @@
 package com.example.testcase.feature_user.presentation.users.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -13,16 +14,21 @@ import com.example.testcase.feature_user.presentation.users.UsersViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 
 @Composable
-fun CircularIndeterminateProgressBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        CircularProgressIndicator(
-            color = MaterialTheme.colorScheme.surfaceVariant
-        )
+fun CircularIndeterminateProgressBar(
+    isLoading: Boolean
+) {
+    if (isLoading) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+                .background(color = MaterialTheme.colorScheme.surfaceVariant),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.inverseOnSurface
+            )
+        }
     }
 }
